@@ -44,7 +44,7 @@ def play_sample_sequence(seconds = 100):
         freq=EventDrunk(scale_treble, maxStep=1),
         amp=EventDrunk([0, 0.5, 0.2, 0,.7, 0.5, 0.2, .04, 0, .1], maxStep=3),
         beat=1/4,
-        durmul=1,
+        durmul=0.5,
         bpm=120,
     )
 
@@ -59,7 +59,59 @@ def play_sample_sequence(seconds = 100):
     s.recstop()
     s.stop()
 
+def midi_demo():
+    s = Server(winhost="wasapi")
+    s.setMidiInputDevice(1)  # Change as required
+    s.boot()
+    s.start()
+    notes = Notein(poly=10, scale=0, first=0, last=127, channel=0, mul=1)
+
+    # User can show a keyboard widget to supply MIDI events.
+    notes.keyboard()
+
+    # Notein["pitch"] retrieves pitch streams.
+    # Converts MIDI pitch to frequency in Hertz.
+    freqs = MToF(notes["pitch"])
+
+    # Notein["velocity"] retrieves normalized velocity streams.
+    # Applies a portamento on the velocity changes.
+    amps = Port(notes["velocity"], risetime=0.005, falltime=0.5, mul=0.1)
+
+    # Creates two groups of oscillators (10 per channel), slightly detuned.
+    sigL = RCOsc(freq=freqs, sharp=0.5, mul=amps)
+    sigR = RCOsc(freq=freqs * 1.003, sharp=0.5, mul=amps)
+
+    # Mixes the 10 voices per channel to a single stream and send the
+    # signals to the audio output.
+    outL = sigL.mix(1).out()
+    outR = sigR.mix(1).out(1)
+
+    # Notein["trigon"] sends a trigger when a voice receive a noteon.
+    # Notein["trigoff"] sends a trigger when a voice receive a noteoff.
+
+    # These functions are called when Notein receives a MIDI note event.
+    def noteon(voice):
+        "Print pitch and velocity for noteon event."
+        pit = int(notes["pitch"].get(all=True)[voice])
+        vel = int(notes["velocity"].get(all=True)[voice] * 127)
+        print("Noteon: voice = %d, pitch = %d, velocity = %d" % (voice, pit, vel))
+
+    def noteoff(voice):
+        "Print pitch and velocity for noteoff event."
+        pit = int(notes["pitch"].get(all=True)[voice])
+        vel = int(notes["velocity"].get(all=True)[voice] * 127)
+        print("Noteoff: voice = %d, pitch = %d, velocity = %d" % (voice, pit, vel))
+
+    # TrigFunc calls a function when it receives a trigger. Because notes["trigon"]
+    # contains 10 streams, there will be 10 caller, each one with its own argument,
+    # taken from the list of integers given at `arg` argument.
+    tfon = TrigFunc(notes["trigon"], noteon, arg=list(range(10)))
+    tfoff = TrigFunc(notes["trigoff"], noteoff, arg=list(range(10)))
+
+    s.gui(locals())
+
+
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print("Starting Server...")
-    play_sample_sequence(20)
+    midi_demo()
