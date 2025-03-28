@@ -1,6 +1,8 @@
 import sys
 
 from pyo import *
+from sqlalchemy.util import namedtuple
+
 
 class SampleSynthServer:
     server = None
@@ -16,12 +18,14 @@ class SampleSynthServer:
     outL = None
     outR = None
 
-    def __init__(self,inout_device, midi_input_device):
+    def __init__(self,inout_device, midi_input_device, name="SynthServer"):
+        self.inout = inout_device
+        self.midi = midi_input_device
+        self.name = name
         self.server = Server()
         self.server.setInOutDevice(inout_device)
         self.server.setMidiInputDevice(midi_input_device)
         self.server.boot()
-        self.pitch = Phasor(freq=11, mul=48, add=36)
         self.notes = Notein(poly=10, scale=0, first=0, last=127, channel=0, mul=1)
         self.notes.keyboard(title = "Synth Server Keyboard")
         # Notein["pitch"] retrieves pitch streams.
@@ -43,7 +47,11 @@ class SampleSynthServer:
 
     def start(self):
         self.server.start()
+        print("Synth Server started, listening on Midi Device", self.midi)
         return self
+
+    def showGUI(self):
+        self.server.gui(locals(), title=self.name) #TODO: This blocks the thread!
 
 def main():
     print(sys.argv)
@@ -52,7 +60,7 @@ def main():
     else:
         synthServer = SampleSynthServer(inout_device=0, midi_input_device=3)
     synthServer.start()
-    synthServer.server.gui("Synth Server GUI")
+    synthServer.showGUI()
 
 if __name__ == "__main__":
     main()

@@ -1,19 +1,11 @@
+import subprocess
 from time import sleep
 
-from pyo import *
-# from pyotools import FatBass
-
+from control.SynthControl import SampleControlServer
 from data.MusicalScales import MusicalScale
-from sound.Synth import SampleSynthServer
 from sound.instruments.SampleBassInstrument import SampleBassInstrument
 from sound.instruments.SampleInstrument import SampleInstrument
-
-
-def demo_sound_windows():
-    s=Server(duplex=1, winhost="mme").boot()
-    s.start()
-    # a = FatBass(freq=110, mul=0.01,octave=0).out()
-    s.gui()
+from settings.Settings import *
 
 def play_sample_sequence(seconds = 100):
     # Path of the recorded sound file.
@@ -111,53 +103,20 @@ def midi_demo():
 
     s.gui(locals())
 
-count = 0
-# Press the green button in the gutter to run the script.
+def main():
+    print("Available Devices:")
+    displayMIDIDevices()
+    displaySoundDevices()
+
+    print("Starting subprocesses...")
+    synthProcess = subprocess.Popen(["python", "./sound/Synth.py", "0", "3"])
+    sleep(2)  # Wait a bit before initializing control server
+
+    print("Starting main control server...")
+    control_server = SampleControlServer(midi_input_device=7, midi_output_device=0, audio_output_device=0)
+    control_server.start()
+    # control_server.play_pattern()
+    control_server.showGUI()
+
 if __name__ == '__main__':
-    print("Starting Server...")
-
-    pa_list_devices()
-    pm_list_devices()
-
-    #exit(0)
-
-    synthServer = SampleSynthServer(inout_device=0, midi_input_device=1)
-    synthServer.start()
-
-    #generator_server = Server(nchnls=1)
-    #generator_server.setOutputDevice(10)
-    #generator_server.setMidiInputDevice(7)
-    #generator_server.setMidiOutputDevice(2)
-    #generator_server.boot()
-    pitch = Phasor(freq=11, mul=48, add=36)
-
-    def midi_event():
-        global count
-        # Retrieve the value of the pitch audio stream and convert it to an int.
-        pit = int(pitch.get())
-
-        # If the count is 0 (down beat), play a louder and longer event, otherwise
-        # play a softer and shorter one.
-        if count == 0:
-            vel = random.randint(90, 110)
-            dur = 500
-        else:
-            vel = random.randint(50, 70)
-            dur = 125
-
-        # Increase and wrap the count to generate a 4 beats sequence.
-        count = (count + 1) % 4
-
-        print("PLAYING: pitch: %d, velocity: %d, duration: %d" % (pit, vel, dur))
-
-        # The Server's `makenote` method generates a noteon event immediately
-        # and the corresponding noteoff event after `duration` milliseconds.
-        synthServer.server.makenote(pitch=pit, velocity=vel, duration=dur)
-
-    #generator_server.start()
-    # Generates a MIDI event every 125 milliseconds.
-    pat = Pattern(midi_event, 0.125).play()
-
-    synthServer.server.gui(locals(), title="Synth Server GUI")
-
-    sleep(1000)
+    main()
