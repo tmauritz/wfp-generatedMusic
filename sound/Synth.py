@@ -1,22 +1,7 @@
-import sys
-
 from pyo import *
-from sqlalchemy.util import namedtuple
 
 
 class SampleSynthServer:
-    server = None
-    # Generates an audio ramp from 36 to 84, from
-    # which MIDI pitches will be extracted.
-    # Global variable to count the down and up beats.
-    notes = None
-    pitch = None
-    freqs = None
-    amps = None
-    sigL = None
-    sigR = None
-    outL = None
-    outR = None
 
     def __init__(self,inout_device, midi_input_device, name="SynthServer"):
         self.inout = inout_device
@@ -27,7 +12,7 @@ class SampleSynthServer:
         self.server.setMidiInputDevice(midi_input_device)
         self.server.boot()
         self.notes = Notein(poly=10, scale=0, first=0, last=127, channel=0, mul=1)
-        self.notes.keyboard(title = "Synth Server Keyboard")
+        # self.notes.keyboard(title = "Synth Server Keyboard") #Uncomment this to play the synth directly via on-screen keyboard
         # Notein["pitch"] retrieves pitch streams.
         # Converts MIDI pitch to frequency in Hertz.
         self.freqs = MToF(self.notes["pitch"])
@@ -54,11 +39,11 @@ class SampleSynthServer:
         self.server.gui(locals(), title=self.name) #TODO: This blocks the thread!
 
 def main():
-    print(sys.argv)
     if len(sys.argv) == 3:
         synthServer = SampleSynthServer(inout_device=sys.argv[1], midi_input_device=int(sys.argv[2]))
     else:
-        synthServer = SampleSynthServer(inout_device=0, midi_input_device=3)
+        print("Please specify inout device and midi input device.")
+        exit(0)
     synthServer.start()
     synthServer.showGUI()
 

@@ -1,4 +1,5 @@
 import random
+import sys
 
 from pyo import Server, Phasor, Pattern, TrigFunc, Notein
 
@@ -82,3 +83,15 @@ class SampleControlServer:
 
         # Generates a MIDI event every 125 milliseconds.
         self.pattern = Pattern(midi_event, 0.125).play()
+
+def main():
+    if len(sys.argv) == 4:
+        control_server = SampleControlServer(midi_input_device=int(sys.argv[1]), midi_output_device=int(sys.argv[2]), audio_output_device=int(sys.argv[3]))
+    else:
+        print("Please specify midi input device, midi output device and a dummy audio device.")
+        exit(0)
+    control_server.start()
+    control_server.showGUI()
+
+if __name__ == "__main__":
+    main()
