@@ -108,6 +108,8 @@ def main():
     displayMIDIDevices()
     displaySoundDevices()
 
+    #TODO: Add persistence layer to store input and output devices
+
     print("Starting subprocesses...")
     synthProcess = subprocess.Popen(["python", "./sound/Synth.py", "0", "3"])
     sleep(2)  # Wait a bit before initializing control server
@@ -115,7 +117,7 @@ def main():
     print("Starting main control server...")
     control_server = SampleControlServer(midi_input_device=7, midi_output_device=0, audio_output_device=0)
     control_server.start()
-    # control_server.play_pattern()
+    control_server.play_pattern()
     control_server.showGUI()
 
 if __name__ == '__main__':
