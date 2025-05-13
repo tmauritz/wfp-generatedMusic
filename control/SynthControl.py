@@ -3,6 +3,9 @@ import sys
 
 from pyo import Server, Phasor, Pattern, TrigFunc, Notein
 
+from data.SongPart import SongPart
+from settings.Settings import ControlSettings
+
 
 class SampleControlServer:
 
@@ -24,32 +27,43 @@ class SampleControlServer:
         self.pattern = None
         self.trigON = None
         self.trigOFF = None
+        self.current_SongPart = SongPart() #TODO: make dynamic
+        self.control_settings = ControlSettings() #TODO: make dynamic
         print("Control Server initialized.")
 
     def start(self):
         print("Starting Control Server...")
         self.server.start()
         self.notes = Notein(poly=10, scale=0, first=0, last=127, channel=0, mul=1)
+        self.notes.keyboard(title="SynthControl Keyboard")
 
         # These functions are called when Notein receives a MIDI note event.
         def noteon(voice):
-            "Print pitch and velocity for noteon event."
+            """Prints pitch and velocity for noteon event."""
             pit = int(self.notes["pitch"].get(all=True)[voice])
             vel = int(self.notes["velocity"].get(all=True)[voice] * 127)
-            print("Noteon: voice = %d, pitch = %d, velocity = %d" % (voice, pit, vel))
-            self.server.makenote(pit, vel, vel*10)
+            # print("Input: voice = %d, pitch = %d, velocity = %d" % (voice, pit, vel))
 
-        def noteoff(voice):
-            "Print pitch and velocity for noteoff event."
-            pit = int(self.notes["pitch"].get(all=True)[voice])
-            vel = int(self.notes["velocity"].get(all=True)[voice] * 127)
-            print("Noteoff: voice = %d, pitch = %d, velocity = %d" % (voice, pit, vel))
+            note_pitch = 0
+            #figure out what input was triggered
+            match pit:
+                case self.control_settings.bass_midi_input:
+                    print("Playing Bass")
+                    note_pitch = self.current_SongPart.Bass()
+                case self.control_settings.lead_midi_input:
+                    print("Playing Lead")
+                    note_pitch = self.current_SongPart.Lead()
+                case self.control_settings.aux_midi_input:
+                    print("Playing Aux")
+                    note_pitch = self.current_SongPart.Aux()
+            if note_pitch > 0:
+                print("Output: voice = %d, pitch = %d, velocity = %d" % (voice, note_pitch, vel))
+                self.server.makenote(note_pitch, vel, vel*10)
 
         # TrigFunc calls a function when it receives a trigger. Because notes["trigon"]
         # contains 10 streams, there will be 10 caller, each one with its own argument,
         # taken from the list of integers given at `arg` argument.
         self.trigON = TrigFunc(self.notes["trigon"], noteon, arg=list(range(10)))
-        self.trigOFF = TrigFunc(self.notes["trigoff"], noteoff, arg=list(range(10)))
 
         print(f"Control Server started. Listening on MIDI Input {self.midi_input}")
 
@@ -91,6 +105,7 @@ def main():
         print("Please specify midi input device, midi output device and a dummy audio device.")
         exit(0)
     control_server.start()
+    #control_server.play_pattern()
     control_server.showGUI()
 
 if __name__ == "__main__":
