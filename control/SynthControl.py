@@ -27,7 +27,7 @@ class SampleControlServer:
         self.pattern = None
         self.trigON = None
         self.trigOFF = None
-        self.current_SongPart = SongPart() #TODO: make dynamic
+        self.current_SongPart = SongPart(self.server) #TODO: make dynamic
         self.control_settings = ControlSettings() #TODO: make dynamic
         print("Control Server initialized.")
 
@@ -35,21 +35,21 @@ class SampleControlServer:
         print("Starting Control Server...")
         self.server.start()
         self.notes = Notein(poly=10, scale=0, first=0, last=127, channel=0, mul=1)
-        self.notes.keyboard(title="SynthControl Keyboard")
 
         # These functions are called when Notein receives a MIDI note event.
         def noteon(voice):
             """Prints pitch and velocity for noteon event."""
             pit = int(self.notes["pitch"].get(all=True)[voice])
             vel = int(self.notes["velocity"].get(all=True)[voice] * 127)
-            # print("Input: voice = %d, pitch = %d, velocity = %d" % (voice, pit, vel))
+            dur = vel / 10
+            print("Input: voice = %d, pitch = %d, velocity = %d" % (voice, pit, vel))
 
             note_pitch = 0
             #figure out what input was triggered
             match pit:
                 case self.control_settings.bass_midi_input:
-                    print("Playing Bass")
-                    note_pitch = self.current_SongPart.Bass()
+                    print("Playing Bass Pattern")
+                    self.current_SongPart.onBassOn(velocity=vel, duration = dur)
                 case self.control_settings.lead_midi_input:
                     print("Playing Lead")
                     note_pitch = self.current_SongPart.Lead()
@@ -58,7 +58,7 @@ class SampleControlServer:
                     note_pitch = self.current_SongPart.Aux()
             if note_pitch > 0:
                 print("Output: voice = %d, pitch = %d, velocity = %d" % (voice, note_pitch, vel))
-                self.server.makenote(note_pitch, vel, vel*10)
+                self.server.makenote(note_pitch, vel, vel/10)
 
         # TrigFunc calls a function when it receives a trigger. Because notes["trigon"]
         # contains 10 streams, there will be 10 caller, each one with its own argument,
@@ -68,6 +68,7 @@ class SampleControlServer:
         print(f"Control Server started. Listening on MIDI Input {self.midi_input}")
 
     def showGUI(self):
+        self.notes.keyboard(title="SynthControl Keyboard")
         self.server.gui(locals(), title=self.name)  # TODO: This blocks the thread!
 
     def play_pattern(self):

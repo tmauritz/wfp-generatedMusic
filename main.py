@@ -24,7 +24,7 @@ def main():
         audio_output_device=control_server_audio_output
     )
     control_server.start()
-    control_server.play_pattern()
+    #control_server.play_pattern()
     control_server.showGUI()
 
 if __name__ == '__main__':
