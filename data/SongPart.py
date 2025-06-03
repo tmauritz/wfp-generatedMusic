@@ -19,32 +19,28 @@ from data.Voice import Voice
 #-  bass
 
 class SongPart:
-    def __init__(self, server):
-
-        self.bass_voice = Voice(server, voice_range = list(range(35,55)), max_step=4, pattern_timer=0.5)
-
-        self.aux_voice_range = list(range(45,70)) #aux midi range TODO: scales!
-        self.lead_voice_range = list(range(72, 95))  # lead midi range TODO: scales!
-        self.count = 0
+    def __init__(self, server, bpm = 120):
         self.server = server
-
+        self.bpm = bpm
+        self.bps = bpm/60
+        self.bass_voice = Voice(server, voice_range = list(range(35,45)), max_step=4, pattern_timer=self.bps, decay=10)
+        self.lead_voice = Voice(server, voice_range = list(range(45,70)), max_step=2, pattern_timer=self.bps/4, decay=10)
+        self.aux_voice = Voice(server, voice_range= list(range(72,95)), max_step=2, pattern_timer=self.bps/8, decay=20)
+        
     def Bass(self):
         return self.bass_voice
 
     def Lead(self):
-        return random.choice(self.lead_voice_range)
+        return self.lead_voice
 
     def Aux(self):
-        return random.choice(self.aux_voice_range)
-
-    def BassRange(self):
-        return self.bass_voice
-
-    def LeadRang(self):
-        return self.lead_voice_range
-
-    def AuxRange(self):
-        return  self.aux_voice_range
+        return self.aux_voice
 
     def onBassOn(self, velocity = 500, duration = 15):
         self.bass_voice.play(velocity, duration)
+
+    def onLeadOn(self, velocity = 500, duration = 15):
+        self.lead_voice.play(velocity, duration)
+
+    def onAuxOn(self, velocity = 500, duration = 15):
+        self.aux_voice.play(velocity, duration)

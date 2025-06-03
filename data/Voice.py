@@ -1,14 +1,12 @@
 from pyo import EventDrunk, Pattern
 
-from midi_out_test import midi_event
-
 class Voice:
     def __init__(self,
              server,
                  voice_range=None,
              max_step = 2,
              pattern_timer = 0.25,
-             decay = 0
+             decay = 50
              ):
         if voice_range is None:
             voice_range = list(range(45, 70))
