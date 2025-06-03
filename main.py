@@ -7,7 +7,7 @@ control_server_midi_input = 5
 control_server_midi_output = 0
 control_server_audio_output = 0
 synth_midi_input = 3
-synth_audio_inout = 0
+synth_audio_inout = 5
 
 def main():
 

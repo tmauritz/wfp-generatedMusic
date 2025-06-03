@@ -26,7 +26,7 @@ class SongPart:
         self.bass_vel = 0
         self.bass_decay = 15
         self.count = 0
-        self.bass_dur = 0
+        self.bass_dur = 2
         self.server = server
         print(self.bass_voice_range)
         print(self.aux_voice_range)

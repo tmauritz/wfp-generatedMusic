@@ -12,23 +12,26 @@ class SampleSynthServer:
         self.server.setMidiInputDevice(midi_input_device)
         self.server.boot()
         self.notes = Notein(poly=10, scale=0, first=0, last=127, channel=0, mul=1)
-        # self.notes.keyboard(title = "Synth Server Keyboard") #Uncomment this to play the synth directly via on-screen keyboard
+        self.notes.keyboard(title = "Synth Server Keyboard") #Uncomment this to play the synth directly via on-screen keyboard
         # Notein["pitch"] retrieves pitch streams.
         # Converts MIDI pitch to frequency in Hertz.
         self.freqs = MToF(self.notes["pitch"])
 
         # Notein["velocity"] retrieves normalized velocity streams.
         # Applies a portamento on the velocity changes.
-        self.amps = Port(self.notes["velocity"], risetime=0.005, falltime=0.5, mul=0.1)
+        self.amps = Port(self.notes["velocity"], risetime=0.005, falltime=.5, mul=0.1)
 
-        # Creates two groups of oscillators (10 per channel), slightly detuned.
         self.sigL = RCOsc(freq=self.freqs, sharp=0.5, mul=self.amps)
         self.sigR = RCOsc(freq=self.freqs * 1.003, sharp=0.5, mul=self.amps)
 
-        # Mixes the 10 voices per channel to a single stream and send the
-        # signals to the audio output.
-        self.outL = self.sigL.mix(1).out()
-        self.outR = self.sigR.mix(1).out(1)
+        self.cutoff = Sine(freq=0.2, mul=2250, add=2750)
+
+        # Apply low-pass filters to each signal
+        self.filteredL = ButLP(self.sigL, freq=self.cutoff)  # You can adjust cutoff frequency
+        self.filteredR = ButLP(self.sigR, freq=self.cutoff)
+
+        self.outL = self.filteredL.mix(1).out()
+        self.outR = self.filteredR.mix(1).out(1)
 
     def start(self):
         self.server.start()

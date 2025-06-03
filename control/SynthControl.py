@@ -41,7 +41,7 @@ class SampleControlServer:
             """Prints pitch and velocity for noteon event."""
             pit = int(self.notes["pitch"].get(all=True)[voice])
             vel = int(self.notes["velocity"].get(all=True)[voice] * 127)
-            dur = vel / 10
+            dur = vel
             print("Input: voice = %d, pitch = %d, velocity = %d" % (voice, pit, vel))
 
             note_pitch = 0
@@ -49,7 +49,7 @@ class SampleControlServer:
             match pit:
                 case self.control_settings.bass_midi_input:
                     print("Playing Bass Pattern")
-                    self.current_SongPart.onBassOn(velocity=vel, duration = dur)
+                    self.current_SongPart.onBassOn(velocity=vel, duration = vel)
                 case self.control_settings.lead_midi_input:
                     print("Playing Lead")
                     note_pitch = self.current_SongPart.Lead()
@@ -58,7 +58,7 @@ class SampleControlServer:
                     note_pitch = self.current_SongPart.Aux()
             if note_pitch > 0:
                 print("Output: voice = %d, pitch = %d, velocity = %d" % (voice, note_pitch, vel))
-                self.server.makenote(note_pitch, vel, vel/10)
+                self.server.makenote(note_pitch, vel, int(vel / 10))
 
         # TrigFunc calls a function when it receives a trigger. Because notes["trigon"]
         # contains 10 streams, there will be 10 caller, each one with its own argument,
