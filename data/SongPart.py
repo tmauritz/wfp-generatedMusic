@@ -2,6 +2,8 @@ import random
 
 from pyo import Pattern, Phasor, EventDrunk, RandInt
 
+from data.Voice import Voice
+
 
 #Intensity: Notes played per second -> influences probability of note output, velocity, pitch etc.
 #Intensity increased every time note is played, decays over time slowlyluq
@@ -18,29 +20,16 @@ from pyo import Pattern, Phasor, EventDrunk, RandInt
 
 class SongPart:
     def __init__(self, server):
-        self.bass_voice_range = list(range(35,55)) # bass midi range TODO: scales!
+
+        self.bass_voice = Voice(server, voice_range = list(range(35,55)), max_step=4, pattern_timer=0.5)
+
         self.aux_voice_range = list(range(45,70)) #aux midi range TODO: scales!
         self.lead_voice_range = list(range(72, 95))  # lead midi range TODO: scales!
-        self.bass_pitch = EventDrunk(self.bass_voice_range, maxStep=4) #performs a random walk over the bass values
-        self.bass_pattern = Pattern(self.bass_midi_event, 0.25)
-        self.bass_vel = 0
-        self.bass_decay = 15
         self.count = 0
-        self.bass_dur = 2
         self.server = server
-        print(self.bass_voice_range)
-        print(self.aux_voice_range)
-        print(self.lead_voice_range)
-
-    def bass_midi_event(self):
-        pitch = int(self.bass_pitch.next())
-        if self.bass_vel > 0:
-            print("playing pitch: %d, velocity: %d, duration: %d" % (pitch, self.bass_vel, self.bass_dur))
-            self.server.makenote(pitch=pitch, velocity = self.bass_vel, duration = int(self.bass_dur))
-            self.bass_vel -= self.bass_decay
 
     def Bass(self):
-        return random.choice(self.bass_voice_range)
+        return self.bass_voice
 
     def Lead(self):
         return random.choice(self.lead_voice_range)
@@ -49,7 +38,7 @@ class SongPart:
         return random.choice(self.aux_voice_range)
 
     def BassRange(self):
-        return self.bass_voice_range
+        return self.bass_voice
 
     def LeadRang(self):
         return self.lead_voice_range
@@ -58,7 +47,4 @@ class SongPart:
         return  self.aux_voice_range
 
     def onBassOn(self, velocity = 500, duration = 15):
-        self.bass_pattern.stop()
-        self.bass_vel = velocity
-        self.bass_dur = duration
-        self.bass_pattern.play(dur=duration)
+        self.bass_voice.play(velocity, duration)
