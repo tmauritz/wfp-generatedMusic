@@ -10,6 +10,7 @@ class SampleSynthServer:
         self.server = Server()
         self.server.setInOutDevice(inout_device)
         self.server.setMidiInputDevice(midi_input_device)
+        self.server.setSamplingRate(48000)
         self.server.boot()
         self.notes = Notein(poly=10, scale=0, first=0, last=127, channel=0, mul=1)
         self.notes.keyboard(title = "Synth Server Keyboard") #Uncomment this to play the synth directly via on-screen keyboard
@@ -43,7 +44,8 @@ class SampleSynthServer:
 
 def main():
     if len(sys.argv) == 3:
-        synthServer = SampleSynthServer(inout_device=sys.argv[1], midi_input_device=int(sys.argv[2]))
+        print(sys.argv)
+        synthServer = SampleSynthServer(inout_device=int(sys.argv[1]), midi_input_device=int(sys.argv[2]))
     else:
         print("Please specify inout device and midi input device.")
         exit(0)

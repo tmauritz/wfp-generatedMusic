@@ -2,6 +2,7 @@ import random
 
 from pyo import Pattern, Phasor, EventDrunk, RandInt
 
+from data.MusicalScales import MusicalScale
 from data.Voice import Voice
 
 
@@ -23,9 +24,21 @@ class SongPart:
         self.server = server
         self.bpm = bpm
         self.bps = bpm/60
-        self.bass_voice = Voice(server, voice_range = list(range(35,45)), max_step=4, pattern_timer=self.bps, decay=10)
-        self.lead_voice = Voice(server, voice_range = list(range(45,70)), max_step=2, pattern_timer=self.bps/4, decay=10)
-        self.aux_voice = Voice(server, voice_range= list(range(72,95)), max_step=2, pattern_timer=self.bps/8, decay=20)
+        self.bass_voice = Voice(server,
+                                voice_range = MusicalScale.MINOR_HARMONIC.transpose(-2),
+                                max_step=4,
+                                pattern_timer=self.bps,
+                                decay=10)
+        self.lead_voice = Voice(server,
+                                voice_range = MusicalScale.MINOR_BLUES.transpose(0),
+                                max_step=2,
+                                pattern_timer=self.bps/4,
+                                decay=10)
+        self.aux_voice = Voice(server,
+                               voice_range= MusicalScale.MINOR_HARMONIC.transpose(-1),
+                               max_step=2,
+                               pattern_timer=self.bps/8,
+                               decay=20)
         
     def Bass(self):
         return self.bass_voice
