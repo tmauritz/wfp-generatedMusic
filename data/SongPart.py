@@ -23,7 +23,7 @@ class SongPart:
     def __init__(self, server, bpm = 120):
         self.server = server
         self.bpm = bpm
-        self.bps = bpm/60
+        self.bps = bpm
         self.bass_voice = Voice(server,
                                 voice_range = MusicalScale.MINOR_HARMONIC.transpose(-2),
                                 max_step=4,
@@ -49,11 +49,11 @@ class SongPart:
     def Aux(self):
         return self.aux_voice
 
-    def onBassOn(self, velocity = 500, duration = 15):
+    def onBassOn(self, velocity = 50, duration = 15):
         self.bass_voice.play(velocity, duration)
 
-    def onLeadOn(self, velocity = 500, duration = 15):
+    def onLeadOn(self, velocity = 50, duration = 15):
         self.lead_voice.play(velocity, duration)
 
-    def onAuxOn(self, velocity = 500, duration = 15):
+    def onAuxOn(self, velocity = 50, duration = 15):
         self.aux_voice.play(velocity, duration)

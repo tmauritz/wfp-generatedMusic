@@ -21,7 +21,7 @@ def main():
     control_server = SampleControlServer(
         midi_input_device=control_server_midi_input,
         midi_output_device=control_server_midi_output,
-        audio_output_device=control_server_audio_output
+        audio_inout_device=control_server_audio_output
     )
     control_server.start()
     #control_server.play_pattern()

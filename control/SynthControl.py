@@ -1,25 +1,38 @@
 import random
 import sys
+import time
 
-from pyo import Server, Phasor, Pattern, TrigFunc, Notein
+from pyo import Server, Phasor, Pattern, TrigFunc, Notein, Input
 
+from AudioInputTriggers import create_trigger
 from data.SongPart import SongPart
 from settings.Settings import ControlSettings
 
 
 class SampleControlServer:
 
-    def __init__(self, midi_input_device, midi_output_device, audio_output_device, name="ControlServer"):
+    def __init__(self, midi_input_device, midi_output_device, audio_inout_device, name="ControlServer"):
+        self.trigger1 = None
+        self.trigger2 = None
+        self.trigger3 = None
+        self.input3 = None
+        self.input2 = None
+        self.input1 = None
+        self.input = None
         print("Initializing Control Server...")
         self.midi_input = midi_input_device
         self.midi_output = midi_output_device
         self.name = name
-        self.server = Server()
         self.count = 0
+        self.server = Server()
+        self.server.setIchnls(3)
+        self.server.setSamplingRate(48000)  # replace with the correct sampling rate for your interface
+        self.server.setInOutDevice(16)  # replace with your USB interface's input index
         self.server.setMidiInputDevice(midi_input_device)
         self.server.setMidiOutputDevice(midi_output_device)
-        self.server.setOutputDevice(audio_output_device)
         self.server.boot()
+        print("Waiting for pyo server boot...")
+        while not self.server.getIsBooted(): time.sleep(0.5)
         self.pitch = None
         self.vel = 0
         self.dur = 0
@@ -35,6 +48,13 @@ class SampleControlServer:
         print("Starting Control Server...")
         self.server.start()
         self.notes = Notein(poly=10, scale=0, first=0, last=127, channel=0, mul=1)
+        self.input1 = Input(0, mul=2)
+        self.input2 = Input(1, mul=2)
+        self.input3 = Input(2, mul=2)
+        print("Creating Triggers...")
+        self.trigger1 = create_trigger(input_channel=self.input1, trigger_function=self.current_SongPart.onBassOn)
+        self.trigger2 = create_trigger(input_channel=self.input2, trigger_function=self.current_SongPart.onLeadOn, cutoff=30)
+        self.trigger3 = create_trigger(input_channel=self.input3, trigger_function=self.current_SongPart.onAuxOn)
 
         # These functions are called when Notein receives a MIDI note event.
         def noteon(voice):
@@ -97,9 +117,9 @@ class SampleControlServer:
 
 def main():
     if len(sys.argv) == 4:
-        control_server = SampleControlServer(midi_input_device=int(sys.argv[1]), midi_output_device=int(sys.argv[2]), audio_output_device=int(sys.argv[3]))
+        control_server = SampleControlServer(midi_input_device=int(sys.argv[1]), midi_output_device=int(sys.argv[2]), audio_inout_device=int(sys.argv[3]))
     else:
-        print("Please specify midi input device, midi output device and a dummy audio device.")
+        print("Please specify midi input device, midi output device, and an audio input/output device.")
         exit(0)
     control_server.start()
     #control_server.play_pattern()
